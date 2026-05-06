@@ -3,7 +3,7 @@ Redy Dashboard
 A static dashboard showing agent proposals received and seller/agent chat
 message notifications. Data is sourced from BigQuery
 (`redy-core-platform-prod.redy_prod_analytics`: `stg_bids`,
-`stg_chat_messages`, `stg_users`).
+`stg_chat_messages`, `stg_users`, `stg_listings`).
 
 ## Run
 

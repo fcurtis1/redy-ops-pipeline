@@ -3,7 +3,7 @@
 
 Pulls activity metrics and recent feed items from
 `redy-core-platform-prod.redy_prod_analytics` (stg_bids, stg_chat_messages,
-stg_users) and writes them to `data/dashboard.json`.
+stg_users, stg_listings) and writes them to `data/dashboard.json`.
 
 Requires google-cloud-bigquery and application-default credentials:
     pip install google-cloud-bigquery
@@ -59,16 +59,28 @@ LEFT JOIN chat_d c ON c.d = d.date
 ORDER BY d.date
 """
 
+ADDR_EXPR = """
+COALESCE(
+  NULLIF(TRIM(CONCAT(
+    COALESCE(l.address_street, ''),
+    IF(l.address_city  IS NOT NULL, CONCAT(', ', l.address_city),  ''),
+    IF(l.address_state IS NOT NULL, CONCAT(', ', l.address_state), '')
+  )), ''),
+  CONCAT('listing ', SUBSTR(COALESCE(l.listing_id, ''), 1, 8))
+)
+"""
+
 FEED_SQL = f"""
 SELECT * FROM (
   SELECT
     'proposal' AS kind,
     b.created_at AS when_ts,
     CONCAT(COALESCE(u.first_name, 'Agent'), ' ', COALESCE(u.last_name, '')) AS who,
-    CONCAT('listing ', SUBSTR(b.listing_id, 1, 8)) AS addr,
+    {ADDR_EXPR} AS addr,
     NOT COALESCE(b.viewed, FALSE) AS unread
   FROM `{PROJECT}.{DATASET}.stg_bids` b
-  LEFT JOIN `{PROJECT}.{DATASET}.stg_users` u ON u.user_id = b.agent_id
+  LEFT JOIN `{PROJECT}.{DATASET}.stg_users`    u ON u.user_id    = b.agent_id
+  LEFT JOIN `{PROJECT}.{DATASET}.stg_listings` l ON l.listing_id = b.listing_id
   WHERE DATE(b.created_at) >= DATE_SUB(CURRENT_DATE(), INTERVAL @days - 1 DAY)
   ORDER BY b.created_at DESC
   LIMIT @feed_limit
@@ -79,10 +91,12 @@ SELECT * FROM (
     CASE WHEN u.role = 'agent' THEN 'agent' ELSE 'seller' END AS kind,
     m.created_at AS when_ts,
     CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS who,
-    CONCAT('bid ', SUBSTR(m.bid_id, 1, 8)) AS addr,
+    {ADDR_EXPR} AS addr,
     m.read_at IS NULL AS unread
   FROM `{PROJECT}.{DATASET}.stg_chat_messages` m
-  LEFT JOIN `{PROJECT}.{DATASET}.stg_users` u ON u.user_id = m.sender_id
+  LEFT JOIN `{PROJECT}.{DATASET}.stg_users`    u ON u.user_id    = m.sender_id
+  LEFT JOIN `{PROJECT}.{DATASET}.stg_bids`     b ON b.bid_id     = m.bid_id
+  LEFT JOIN `{PROJECT}.{DATASET}.stg_listings` l ON l.listing_id = b.listing_id
   WHERE DATE(m.created_at) >= DATE_SUB(CURRENT_DATE(), INTERVAL @days - 1 DAY)
     AND u.role IN ('agent', 'seller')
   ORDER BY m.created_at DESC
