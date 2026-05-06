@@ -1,118 +1,500 @@
 {
-  "generated_at": "2026-05-06",
+  "generated_at": "2026-05-06T21:57:44Z",
   "source": "redy-core-platform-prod.redy_prod_analytics",
-  "series": [
-    {"date":"2026-03-08","proposals":19,"seller":4,"agent":7,"unread_bids":19,"unread_msgs":3},
-    {"date":"2026-03-09","proposals":27,"seller":11,"agent":23,"unread_bids":27,"unread_msgs":12},
-    {"date":"2026-03-10","proposals":11,"seller":12,"agent":19,"unread_bids":11,"unread_msgs":8},
-    {"date":"2026-03-11","proposals":27,"seller":19,"agent":22,"unread_bids":27,"unread_msgs":10},
-    {"date":"2026-03-12","proposals":20,"seller":20,"agent":17,"unread_bids":20,"unread_msgs":5},
-    {"date":"2026-03-13","proposals":33,"seller":28,"agent":32,"unread_bids":33,"unread_msgs":8},
-    {"date":"2026-03-14","proposals":13,"seller":12,"agent":24,"unread_bids":13,"unread_msgs":3},
-    {"date":"2026-03-15","proposals":12,"seller":0,"agent":15,"unread_bids":12,"unread_msgs":6},
-    {"date":"2026-03-16","proposals":25,"seller":20,"agent":29,"unread_bids":25,"unread_msgs":10},
-    {"date":"2026-03-17","proposals":24,"seller":4,"agent":12,"unread_bids":24,"unread_msgs":3},
-    {"date":"2026-03-18","proposals":66,"seller":5,"agent":7,"unread_bids":66,"unread_msgs":3},
-    {"date":"2026-03-19","proposals":26,"seller":15,"agent":31,"unread_bids":26,"unread_msgs":13},
-    {"date":"2026-03-20","proposals":25,"seller":6,"agent":11,"unread_bids":25,"unread_msgs":0},
-    {"date":"2026-03-21","proposals":19,"seller":7,"agent":5,"unread_bids":19,"unread_msgs":2},
-    {"date":"2026-03-22","proposals":13,"seller":3,"agent":10,"unread_bids":13,"unread_msgs":3},
-    {"date":"2026-03-23","proposals":39,"seller":15,"agent":23,"unread_bids":39,"unread_msgs":5},
-    {"date":"2026-03-24","proposals":47,"seller":16,"agent":43,"unread_bids":47,"unread_msgs":13},
-    {"date":"2026-03-25","proposals":42,"seller":17,"agent":33,"unread_bids":42,"unread_msgs":14},
-    {"date":"2026-03-26","proposals":35,"seller":4,"agent":7,"unread_bids":35,"unread_msgs":5},
-    {"date":"2026-03-27","proposals":32,"seller":12,"agent":9,"unread_bids":32,"unread_msgs":1},
-    {"date":"2026-03-28","proposals":27,"seller":4,"agent":9,"unread_bids":27,"unread_msgs":2},
-    {"date":"2026-03-29","proposals":36,"seller":8,"agent":2,"unread_bids":36,"unread_msgs":0},
-    {"date":"2026-03-30","proposals":64,"seller":16,"agent":17,"unread_bids":64,"unread_msgs":9},
-    {"date":"2026-03-31","proposals":60,"seller":19,"agent":23,"unread_bids":60,"unread_msgs":4},
-    {"date":"2026-04-01","proposals":33,"seller":7,"agent":12,"unread_bids":33,"unread_msgs":1},
-    {"date":"2026-04-02","proposals":40,"seller":7,"agent":11,"unread_bids":40,"unread_msgs":1},
-    {"date":"2026-04-03","proposals":42,"seller":24,"agent":13,"unread_bids":42,"unread_msgs":4},
-    {"date":"2026-04-04","proposals":34,"seller":1,"agent":11,"unread_bids":34,"unread_msgs":2},
-    {"date":"2026-04-05","proposals":54,"seller":4,"agent":5,"unread_bids":54,"unread_msgs":0},
-    {"date":"2026-04-06","proposals":73,"seller":16,"agent":20,"unread_bids":73,"unread_msgs":7},
-    {"date":"2026-04-07","proposals":49,"seller":23,"agent":18,"unread_bids":49,"unread_msgs":12},
-    {"date":"2026-04-08","proposals":44,"seller":8,"agent":21,"unread_bids":44,"unread_msgs":14},
-    {"date":"2026-04-09","proposals":20,"seller":14,"agent":17,"unread_bids":20,"unread_msgs":5},
-    {"date":"2026-04-10","proposals":15,"seller":10,"agent":16,"unread_bids":15,"unread_msgs":3},
-    {"date":"2026-04-11","proposals":7,"seller":6,"agent":3,"unread_bids":7,"unread_msgs":0},
-    {"date":"2026-04-12","proposals":27,"seller":8,"agent":5,"unread_bids":27,"unread_msgs":3},
-    {"date":"2026-04-13","proposals":45,"seller":21,"agent":46,"unread_bids":45,"unread_msgs":22},
-    {"date":"2026-04-14","proposals":63,"seller":12,"agent":27,"unread_bids":63,"unread_msgs":12},
-    {"date":"2026-04-15","proposals":36,"seller":12,"agent":28,"unread_bids":36,"unread_msgs":17},
-    {"date":"2026-04-16","proposals":15,"seller":22,"agent":26,"unread_bids":15,"unread_msgs":12},
-    {"date":"2026-04-17","proposals":21,"seller":14,"agent":24,"unread_bids":21,"unread_msgs":12},
-    {"date":"2026-04-18","proposals":9,"seller":5,"agent":3,"unread_bids":9,"unread_msgs":1},
-    {"date":"2026-04-19","proposals":20,"seller":2,"agent":10,"unread_bids":20,"unread_msgs":4},
-    {"date":"2026-04-20","proposals":46,"seller":7,"agent":15,"unread_bids":46,"unread_msgs":14},
-    {"date":"2026-04-21","proposals":45,"seller":40,"agent":28,"unread_bids":45,"unread_msgs":10},
-    {"date":"2026-04-22","proposals":51,"seller":15,"agent":22,"unread_bids":51,"unread_msgs":9},
-    {"date":"2026-04-23","proposals":46,"seller":26,"agent":28,"unread_bids":46,"unread_msgs":10},
-    {"date":"2026-04-24","proposals":33,"seller":7,"agent":17,"unread_bids":33,"unread_msgs":3},
-    {"date":"2026-04-25","proposals":19,"seller":10,"agent":13,"unread_bids":19,"unread_msgs":10},
-    {"date":"2026-04-26","proposals":22,"seller":5,"agent":4,"unread_bids":22,"unread_msgs":1},
-    {"date":"2026-04-27","proposals":51,"seller":12,"agent":23,"unread_bids":51,"unread_msgs":5},
-    {"date":"2026-04-28","proposals":41,"seller":8,"agent":4,"unread_bids":41,"unread_msgs":5},
-    {"date":"2026-04-29","proposals":46,"seller":9,"agent":16,"unread_bids":46,"unread_msgs":6},
-    {"date":"2026-04-30","proposals":43,"seller":7,"agent":15,"unread_bids":43,"unread_msgs":11},
-    {"date":"2026-05-01","proposals":61,"seller":9,"agent":15,"unread_bids":61,"unread_msgs":13},
-    {"date":"2026-05-02","proposals":32,"seller":2,"agent":9,"unread_bids":32,"unread_msgs":9},
-    {"date":"2026-05-03","proposals":50,"seller":0,"agent":6,"unread_bids":50,"unread_msgs":3},
-    {"date":"2026-05-04","proposals":78,"seller":21,"agent":27,"unread_bids":78,"unread_msgs":11},
-    {"date":"2026-05-05","proposals":87,"seller":14,"agent":35,"unread_bids":87,"unread_msgs":28},
-    {"date":"2026-05-06","proposals":18,"seller":0,"agent":1,"unread_bids":18,"unread_msgs":1}
+  "owners": [
+    {
+      "id": "217900924",
+      "name": "Ben Costanzo",
+      "initials": "BC"
+    },
+    {
+      "id": "1467012544",
+      "name": "Cory Frantz",
+      "initials": "CF"
+    },
+    {
+      "id": "88213047",
+      "name": "Deseree Klann",
+      "initials": "DK"
+    },
+    {
+      "id": "88457304",
+      "name": "Joseph Martinez",
+      "initials": "JM"
+    },
+    {
+      "id": "350360371",
+      "name": "Lauren Tannor",
+      "initials": "LT"
+    },
+    {
+      "id": "88457305",
+      "name": "Scott Turner",
+      "initials": "ST"
+    }
+  ],
+  "statuses": [
+    "active",
+    "bid_review",
+    "pending_approval"
+  ],
+  "kpis": {
+    "total_listings": 13,
+    "total_tasks": 19,
+    "urgent_count": 6,
+    "warning_count": 4
+  },
+  "listings": [
+    {
+      "listing_id": "69f9090e2c4e8c8e40e97721",
+      "address": "505 San Nicholas Court",
+      "city": "Laguna Beach",
+      "state": "CA",
+      "zip": "92651",
+      "price": 990000,
+      "status": "active",
+      "created_date": "2026-05-04",
+      "owner_id": "88213047",
+      "owner_name": "Deseree Klann",
+      "owner_initials": "DK",
+      "seller_name": "Jamie D.",
+      "tasks": [
+        {
+          "type": "reply_agent",
+          "urgency": "urgent",
+          "icon": "\ud83d\udcac",
+          "text": "Reply to Edward Ong (agent) \u2014 unread message sent 1d ago",
+          "age_label": "23h overdue",
+          "age_hours": 47.7
+        },
+        {
+          "type": "reply_agent",
+          "urgency": "urgent",
+          "icon": "\ud83d\udcac",
+          "text": "Reply to Laurie Cappadocia (agent) \u2014 unread message sent 1d ago",
+          "age_label": "3h overdue",
+          "age_hours": 27.5
+        },
+        {
+          "type": "new_proposals",
+          "urgency": "info",
+          "icon": "\ud83d\udcc4",
+          "text": "15 new proposals from agents \u2014 notify seller Jamie D. (Maria Elena G., Tyson L., Chase B., Okolo S.)",
+          "age_label": "today",
+          "age_hours": 0
+        }
+      ],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69f918522c4e8c8e40ec36f4",
+      "address": "28021 Calle Santa Ynez",
+      "city": "San Juan Capistrano",
+      "state": "CA",
+      "zip": "92675",
+      "price": 1479000,
+      "status": "active",
+      "created_date": "2026-05-04",
+      "owner_id": "88457304",
+      "owner_name": "Joseph Martinez",
+      "owner_initials": "JM",
+      "seller_name": "r g.",
+      "tasks": [
+        {
+          "type": "reply_agent",
+          "urgency": "urgent",
+          "icon": "\ud83d\udcac",
+          "text": "Reply to Laurie Cappadocia (agent) \u2014 unread message sent 1d ago",
+          "age_label": "3h overdue",
+          "age_hours": 27.5
+        },
+        {
+          "type": "reply_agent",
+          "urgency": "urgent",
+          "icon": "\ud83d\udcac",
+          "text": "Reply to Edward Ong (agent) \u2014 unread message sent 1d ago",
+          "age_label": "1h overdue",
+          "age_hours": 25.8
+        },
+        {
+          "type": "new_proposals",
+          "urgency": "info",
+          "icon": "\ud83d\udcc4",
+          "text": "12 new proposals from agents \u2014 notify seller r g. (Maria Elena G., Tyson L., Chase B., Omar A.)",
+          "age_label": "today",
+          "age_hours": 0
+        }
+      ],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69f9185f2c4e8c8e40ec4003",
+      "address": "22942 Crespi Street",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zip": "91364",
+      "price": 2000000,
+      "status": "active",
+      "created_date": "2026-05-04",
+      "owner_id": "88457305",
+      "owner_name": "Scott Turner",
+      "owner_initials": "ST",
+      "seller_name": "Cheri W.",
+      "tasks": [
+        {
+          "type": "reply_agent",
+          "urgency": "urgent",
+          "icon": "\ud83d\udcac",
+          "text": "Reply to Edward Ong (agent) \u2014 unread message sent 1d ago",
+          "age_label": "1h overdue",
+          "age_hours": 25.8
+        },
+        {
+          "type": "new_proposals",
+          "urgency": "info",
+          "icon": "\ud83d\udcc4",
+          "text": "5 new proposals from agents \u2014 notify seller Cheri W. (Maria Elena G., Tyson L., Marco C., Chase B.)",
+          "age_label": "today",
+          "age_hours": 0
+        }
+      ],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69f832679a1e40b063a8ebea",
+      "address": "676 Caruso Avenue",
+      "city": "Glendale",
+      "state": "CA",
+      "zip": "91210",
+      "price": 1344000,
+      "status": "bid_review",
+      "created_date": "2026-05-04",
+      "owner_id": "88457305",
+      "owner_name": "Scott Turner",
+      "owner_initials": "ST",
+      "seller_name": "Paul R.",
+      "tasks": [
+        {
+          "type": "reply_seller",
+          "urgency": "urgent",
+          "icon": "\ud83d\udcde",
+          "text": "Call Paul R. back \u2014 seller messaged \"Tried calling now texting\" 1d ago, still unread",
+          "age_label": "0h overdue",
+          "age_hours": 24.4
+        },
+        {
+          "type": "reply_agent",
+          "urgency": "warning",
+          "icon": "\ud83d\udcac",
+          "text": "Reply to Okolo Shandrow (agent) \u2014 unread message sent 22h ago",
+          "age_label": "22h ago",
+          "age_hours": 22.7
+        },
+        {
+          "type": "new_proposals",
+          "urgency": "info",
+          "icon": "\ud83d\udcc4",
+          "text": "18 new proposals from agents \u2014 notify seller Paul R. (Maria Elena G., Tyson L., Chase B., Leslie C.)",
+          "age_label": "today",
+          "age_hours": 0
+        }
+      ],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69f6678f9a1e40b063933336",
+      "address": "79 Ganung Drive",
+      "city": "Ossining",
+      "state": "NY",
+      "zip": "10562",
+      "price": 856000,
+      "status": "active",
+      "created_date": "2026-05-02",
+      "owner_id": "88457305",
+      "owner_name": "Scott Turner",
+      "owner_initials": "ST",
+      "seller_name": "John S.",
+      "tasks": [
+        {
+          "type": "call_seller",
+          "urgency": "warning",
+          "icon": "\ud83d\udcde",
+          "text": "Call John S. (seller) \u2014 3 proposals received but no outbound contact yet",
+          "age_label": "since 2026-05-02",
+          "age_hours": 48
+        },
+        {
+          "type": "new_proposals",
+          "urgency": "info",
+          "icon": "\ud83d\udcc4",
+          "text": "3 new proposals from agents \u2014 notify seller John S. (Susie P., Mary B., Rafael P.)",
+          "age_label": "today",
+          "age_hours": 0
+        }
+      ],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69fa34262c4e8c8e401268c4",
+      "address": "21073 Morris Drive",
+      "city": "Strongsville",
+      "state": "OH",
+      "zip": "44149",
+      "price": 156000,
+      "status": "active",
+      "created_date": "2026-05-05",
+      "owner_id": "350360371",
+      "owner_name": "Lauren Tannor",
+      "owner_initials": "LT",
+      "seller_name": "Tim C.",
+      "tasks": [
+        {
+          "type": "call_seller",
+          "urgency": "warning",
+          "icon": "\ud83d\udcde",
+          "text": "Call Tim C. (seller) \u2014 1 proposal received but no outbound contact yet",
+          "age_label": "since 2026-05-05",
+          "age_hours": 48
+        },
+        {
+          "type": "new_proposals",
+          "urgency": "info",
+          "icon": "\ud83d\udcc4",
+          "text": "1 new proposal from agents \u2014 notify seller Tim C. (Dwight M.)",
+          "age_label": "today",
+          "age_hours": 0
+        }
+      ],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69fa06962c4e8c8e40ffc30e",
+      "address": "292 Pleasant Hill Church Rd SE",
+      "city": "Winder",
+      "state": "GA",
+      "zip": "30680",
+      "price": 295000,
+      "status": "active",
+      "created_date": "2026-05-05",
+      "owner_id": "217900924",
+      "owner_name": "Ben Costanzo",
+      "owner_initials": "BC",
+      "seller_name": "Bobby C.",
+      "tasks": [
+        {
+          "type": "call_seller",
+          "urgency": "warning",
+          "icon": "\ud83d\udcde",
+          "text": "Call Bobby C. (seller) \u2014 1 proposal received but no outbound contact yet",
+          "age_label": "since 2026-05-05",
+          "age_hours": 48
+        },
+        {
+          "type": "new_proposals",
+          "urgency": "info",
+          "icon": "\ud83d\udcc4",
+          "text": "1 new proposal from agents \u2014 notify seller Bobby C. (Will F.)",
+          "age_label": "today",
+          "age_hours": 0
+        }
+      ],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69f77b6d9a1e40b06399d130",
+      "address": "70170 Sun Valley Drive",
+      "city": "Rancho Mirage",
+      "state": "CA",
+      "zip": "92270",
+      "price": 1057000,
+      "status": "active",
+      "created_date": "2026-05-03",
+      "owner_id": "350360371",
+      "owner_name": "Lauren Tannor",
+      "owner_initials": "LT",
+      "seller_name": "Ron S.",
+      "tasks": [
+        {
+          "type": "new_proposals",
+          "urgency": "info",
+          "icon": "\ud83d\udcc4",
+          "text": "10 new proposals from agents \u2014 notify seller Ron S. (Maria Elena G., Tyson L., Chase B., Matthew O.)",
+          "age_label": "today",
+          "age_hours": 0
+        }
+      ],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69f7c2449a1e40b063a16d18",
+      "address": "10 Boxwood Lane",
+      "city": "Lawrence",
+      "state": "NY",
+      "zip": "11559",
+      "price": 2945000,
+      "status": "active",
+      "created_date": "2026-05-03",
+      "owner_id": "1467012544",
+      "owner_name": "Cory Frantz",
+      "owner_initials": "CF",
+      "seller_name": "J Lawrence K.",
+      "tasks": [
+        {
+          "type": "new_proposals",
+          "urgency": "info",
+          "icon": "\ud83d\udcc4",
+          "text": "6 new proposals from agents \u2014 notify seller J Lawrence K. (Rafael P., Stephen L., David R., Matthew C.)",
+          "age_label": "today",
+          "age_hours": 0
+        }
+      ],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69fa16932c4e8c8e40062996",
+      "address": "211 Willow Creek Court",
+      "city": "Mansfield",
+      "state": "TX",
+      "zip": "76063",
+      "price": 407000,
+      "status": "active",
+      "created_date": "2026-05-05",
+      "owner_id": "217900924",
+      "owner_name": "Ben Costanzo",
+      "owner_initials": "BC",
+      "seller_name": "Samad M.",
+      "tasks": [],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69fa06142c4e8c8e40ffb638",
+      "address": "3295 Glencairn Road",
+      "city": "Shaker Heights",
+      "state": "OH",
+      "zip": "44122",
+      "price": 404000,
+      "status": "active",
+      "created_date": "2026-05-05",
+      "owner_id": "350360371",
+      "owner_name": "Lauren Tannor",
+      "owner_initials": "LT",
+      "seller_name": "Thomas B.",
+      "tasks": [],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69fa63e32c4e8c8e4029b183",
+      "address": "2460 Lakeview Loop",
+      "city": "Stonyford",
+      "state": "CA",
+      "zip": "95979",
+      "price": 298000,
+      "status": "active",
+      "created_date": "2026-05-05",
+      "owner_id": "1467012544",
+      "owner_name": "Cory Frantz",
+      "owner_initials": "CF",
+      "seller_name": "Rhonda G.",
+      "tasks": [],
+      "last_activity_label": "today"
+    },
+    {
+      "listing_id": "69fac3d22c4e8c8e4038a463",
+      "address": "525 Manatee Court",
+      "city": "Venice",
+      "state": "FL",
+      "zip": "34285",
+      "price": 0,
+      "status": "pending_approval",
+      "created_date": "2026-05-06",
+      "owner_id": "88457305",
+      "owner_name": "Scott Turner",
+      "owner_initials": "ST",
+      "seller_name": "Francis A.",
+      "tasks": [],
+      "last_activity_label": "today"
+    }
   ],
   "feed": [
-    {"kind":"proposal","who":"Maria Elena Gonzalez-Hablo Espanol","addr":"676 Caruso Avenue, Glendale, CA","when":1778045666.824,"unread":true},
-    {"kind":"proposal","who":"Maria Elena Gonzalez-Hablo Espanol","addr":"22942 Crespi Street, Los Angeles, CA","when":1778045635.692,"unread":true},
-    {"kind":"proposal","who":"Maria Elena Gonzalez-Hablo Espanol","addr":"505 San Nicholas Court, Laguna Beach, CA","when":1778045574.697,"unread":true},
-    {"kind":"proposal","who":"Maria Elena Gonzalez-Hablo Espanol","addr":"28021 Calle Santa Ynez, San Juan Capistrano, CA","when":1778045503.114,"unread":true},
-    {"kind":"proposal","who":"Maria Elena Gonzalez-Hablo Espanol","addr":"70170 Sun Valley Drive, Rancho Mirage, CA","when":1778045337.077,"unread":true},
-    {"kind":"proposal","who":"Tyson Leon-Guerrero","addr":"70170 Sun Valley Drive, Rancho Mirage, CA","when":1778036761.199,"unread":true},
-    {"kind":"proposal","who":"Tyson Leon-Guerrero","addr":"28021 Calle Santa Ynez, San Juan Capistrano, CA","when":1778036670.720,"unread":true},
-    {"kind":"proposal","who":"Tyson Leon-Guerrero","addr":"505 San Nicholas Court, Laguna Beach, CA","when":1778036580.466,"unread":true},
-    {"kind":"proposal","who":"Tyson Leon-Guerrero","addr":"676 Caruso Avenue, Glendale, CA","when":1778036386.755,"unread":true},
-    {"kind":"proposal","who":"Tyson Leon-Guerrero","addr":"22942 Crespi Street, Los Angeles, CA","when":1778036310.390,"unread":true},
-    {"kind":"proposal","who":"Dwight Milko","addr":"21073 Morris Drive, Strongsville, OH","when":1778034738.098,"unread":true},
-    {"kind":"agent","who":"Dexter Lee","addr":"178 Vermillion Drive, Columbia, SC","when":1778033311.428,"unread":true},
-    {"kind":"proposal","who":"Will Fassinger","addr":"292 Pleasant Hill Church Road Southeast, Winder, GA","when":1778032242.305,"unread":true},
-    {"kind":"proposal","who":"Susie Pratt","addr":"79 Ganung Drive, Ossining, NY","when":1778030084.856,"unread":true},
-    {"kind":"proposal","who":"Marco Colantonio","addr":"22942 Crespi Street, Los Angeles, CA","when":1778027792.432,"unread":true},
-    {"kind":"proposal","who":"Mary Byrne","addr":"79 Ganung Drive, Ossining, NY","when":1778027659.019,"unread":true},
-    {"kind":"proposal","who":"Rafael Pinkhasov","addr":"79 Ganung Drive, Ossining, NY","when":1778025994.554,"unread":true},
-    {"kind":"proposal","who":"Rafael Pinkhasov","addr":"10 Boxwood Lane, Lawrence, NY","when":1778025923.755,"unread":true},
-    {"kind":"proposal","who":"Chase Behr","addr":"70170 Sun Valley Drive, Rancho Mirage, CA","when":1778025744.444,"unread":true},
-    {"kind":"proposal","who":"Chase Behr","addr":"28021 Calle Santa Ynez, San Juan Capistrano, CA","when":1778024516.550,"unread":true},
-    {"kind":"proposal","who":"Chase Behr","addr":"505 San Nicholas Court, Laguna Beach, CA","when":1778024464.264,"unread":true},
-    {"kind":"proposal","who":"Stephen Loffredo","addr":"10 Boxwood Lane, Lawrence, NY","when":1778024420.153,"unread":true},
-    {"kind":"proposal","who":"Chase Behr","addr":"22942 Crespi Street, Los Angeles, CA","when":1778024419.628,"unread":true},
-    {"kind":"seller","who":"Deana McKean","addr":"555 Cottonwood Avenue, Bennett, CO","when":1778024304.831,"unread":true},
-    {"kind":"proposal","who":"Chase Behr","addr":"676 Caruso Avenue, Glendale, CA","when":1778024275.909,"unread":true},
-    {"kind":"proposal","who":"Chase Behr","addr":"2460 Lakeview Loop, Stonyford, CA","when":1778023873.618,"unread":true},
-    {"kind":"proposal","who":"Okolo Shandrow","addr":"505 San Nicholas Court, Laguna Beach, CA","when":1778021196.104,"unread":true},
-    {"kind":"agent","who":"Okolo Shandrow","addr":"676 Caruso Avenue, Glendale, CA","when":1778020449.133,"unread":true},
-    {"kind":"agent","who":"Okolo Shandrow","addr":"676 Caruso Avenue, Glendale, CA","when":1778020125.137,"unread":true},
-    {"kind":"agent","who":"Okolo Shandrow","addr":"676 Caruso Avenue, Glendale, CA","when":1778019745.060,"unread":true},
-    {"kind":"proposal","who":"Matthew Ornelas","addr":"505 San Nicholas Court, Laguna Beach, CA","when":1778018967.234,"unread":true},
-    {"kind":"seller","who":"DK Overton","addr":"8620 El Mirasol Court, Fort Myers, FL","when":1778018140.675,"unread":true},
-    {"kind":"proposal","who":"Nick White","addr":"505 San Nicholas Court, Laguna Beach, CA","when":1778016012.418,"unread":true},
-    {"kind":"proposal","who":"Greg Crenshaw","addr":"211 Willow Creek Court, Mansfield, TX","when":1778015426.980,"unread":true},
-    {"kind":"proposal","who":"Janie Weller","addr":"15408 14th Avenue Northwest, Gig Harbor, WA","when":1778015220.250,"unread":true},
-    {"kind":"proposal","who":"Sara Wibberley","addr":"7854 Margaret Circle, Newburgh, IN","when":1778014946.298,"unread":true},
-    {"kind":"seller","who":"Paul Richter","addr":"676 Caruso Avenue, Glendale, CA","when":1778014309.658,"unread":true},
-    {"kind":"agent","who":"Scott Behrendt","addr":"10 Crestview Terrace, Buffalo Grove, IL","when":1778014022.761,"unread":true},
-    {"kind":"agent","who":"Edward Ong","addr":"70170 Sun Valley Drive, Rancho Mirage, CA","when":1778009269.972,"unread":false},
-    {"kind":"agent","who":"Edward Ong","addr":"28021 Calle Santa Ynez, San Juan Capistrano, CA","when":1778009264.711,"unread":true},
-    {"kind":"agent","who":"Edward Ong","addr":"22942 Crespi Street, Los Angeles, CA","when":1778009258.888,"unread":true},
-    {"kind":"seller","who":"Nigel Bowmer","addr":"7680 Southwest 74th Loop, Ocala, FL","when":1778007541.154,"unread":false},
-    {"kind":"seller","who":"Nigel Bowmer","addr":"7680 Southwest 74th Loop, Ocala, FL","when":1778007533.079,"unread":false},
-    {"kind":"agent","who":"Jordon Gutierrez","addr":"411 Aspen Street, Fort Morgan, CO","when":1778004545.651,"unread":true},
-    {"kind":"agent","who":"Jordon Gutierrez","addr":"411 Aspen Street, Fort Morgan, CO","when":1778003632.948,"unread":true},
-    {"kind":"agent","who":"Jordon Gutierrez","addr":"411 Aspen Street, Fort Morgan, CO","when":1778003607.945,"unread":true},
-    {"kind":"agent","who":"Laurie Cappadocia","addr":"70170 Sun Valley Drive, Rancho Mirage, CA","when":1778003232.155,"unread":false},
-    {"kind":"agent","who":"Laurie Cappadocia","addr":"505 San Nicholas Court, Laguna Beach, CA","when":1778003206.271,"unread":true},
-    {"kind":"agent","who":"Laurie Cappadocia","addr":"28021 Calle Santa Ynez, San Juan Capistrano, CA","when":1778003195.985,"unread":true},
-    {"kind":"agent","who":"Laurie Cappadocia","addr":"228 Vista Grande Glen, Escondido, CA","when":1778003173.584,"unread":false}
+    {
+      "kind": "proposal",
+      "who": "Maria Elena Gonzalez-Hablo Espanol",
+      "addr": "676 Caruso Avenue, Glendale",
+      "when": 1778097464.133347,
+      "unread": true,
+      "listing_id": "69f832679a1e40b063a8ebea"
+    },
+    {
+      "kind": "proposal",
+      "who": "Maria Elena Gonzalez-Hablo Espanol",
+      "addr": "22942 Crespi Street, Los Angeles",
+      "when": 1778093864.133347,
+      "unread": true,
+      "listing_id": "69f9185f2c4e8c8e40ec4003"
+    },
+    {
+      "kind": "proposal",
+      "who": "Maria Elena Gonzalez-Hablo Espanol",
+      "addr": "505 San Nicholas Court, Laguna Beach",
+      "when": 1778093864.133347,
+      "unread": true,
+      "listing_id": "69f9090e2c4e8c8e40e97721"
+    },
+    {
+      "kind": "proposal",
+      "who": "Tyson Leon-Guerrero",
+      "addr": "70170 Sun Valley Drive, Rancho Mirage",
+      "when": 1778086664.133347,
+      "unread": true,
+      "listing_id": "69f77b6d9a1e40b06399d130"
+    },
+    {
+      "kind": "agent",
+      "who": "Dexter Lee",
+      "addr": "proposal follow-up",
+      "when": 1778083064.133347,
+      "unread": false,
+      "listing_id": ""
+    },
+    {
+      "kind": "proposal",
+      "who": "Dwight Milko",
+      "addr": "21073 Morris Drive, Strongsville",
+      "when": 1778083064.133347,
+      "unread": true,
+      "listing_id": "69fa34262c4e8c8e401268c4"
+    },
+    {
+      "kind": "proposal",
+      "who": "Will Fassinger",
+      "addr": "292 Pleasant Hill Church Rd, Winder",
+      "when": 1778079464.133347,
+      "unread": true,
+      "listing_id": "69fa06962c4e8c8e40ffc30e"
+    },
+    {
+      "kind": "proposal",
+      "who": "Susie Pratt",
+      "addr": "79 Ganung Drive, Ossining",
+      "when": 1778075864.133347,
+      "unread": true,
+      "listing_id": "69f6678f9a1e40b063933336"
+    },
+    {
+      "kind": "proposal",
+      "who": "Rafael Pinkhasov",
+      "addr": "10 Boxwood Lane, Lawrence",
+      "when": 1778072264.133347,
+      "unread": true,
+      "listing_id": "69f7c2449a1e40b063a16d18"
+    },
+    {
+      "kind": "proposal",
+      "who": "Chase Behr",
+      "addr": "70170 Sun Valley Drive, Rancho Mirage",
+      "when": 1778068664.133347,
+      "unread": true,
+      "listing_id": "69f77b6d9a1e40b06399d130"
+    }
   ]
 }
