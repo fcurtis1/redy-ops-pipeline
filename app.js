@@ -15,8 +15,26 @@ async function loadData() {
 function populateFilters() {
   const os = document.getElementById("f-owner");
   (DATA.owners||[]).forEach(o => { const opt = document.createElement("option"); opt.value = o.id; opt.textContent = o.name; os.appendChild(opt); });
-  const ss = document.getElementById("f-status");
-  (DATA.statuses||[]).forEach(s => { const opt = document.createElement("option"); opt.value = s; opt.textContent = s.replace(/_/g," "); ss.appendChild(opt); });
+
+  // Multi-select status dropdown
+  const dd = document.getElementById("f-status-dd");
+  const display = document.getElementById("f-status-display");
+  const wrap = document.getElementById("f-status-wrap");
+  const statusCounts = {};
+  (DATA.listings||[]).forEach(l => { statusCounts[l.status] = (statusCounts[l.status]||0)+1; });
+  (DATA.statuses||[]).forEach(s => {
+    const label = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.value = s;
+    cb.addEventListener("change", () => { updateStatusDisplay(); PAGE=0; render(); });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(` ${s.replace(/_/g," ")} (${statusCounts[s]||0})`));
+    dd.appendChild(label);
+  });
+  display.addEventListener("click", (e) => { e.stopPropagation(); dd.style.display = dd.style.display==="none"?"block":"none"; });
+  document.addEventListener("click", () => { dd.style.display = "none"; });
+  dd.addEventListener("click", (e) => { e.stopPropagation(); });
+
   document.getElementById("sync-time").textContent = "Last sync: " + (DATA.generated_at||"").replace("T"," ").replace("Z"," UTC");
   const today = new Date().toISOString().split("T")[0];
   const monthAgo = new Date(Date.now()-30*86400000).toISOString().split("T")[0];
@@ -24,10 +42,20 @@ function populateFilters() {
   document.getElementById("f-to").value = today;
 }
 
+function updateStatusDisplay() {
+  const checked = Array.from(document.querySelectorAll('#f-status-dd input[type="checkbox"]:checked'));
+  const display = document.getElementById("f-status-display");
+  if (checked.length === 0) { display.textContent = "All statuses"; }
+  else if (checked.length === 1) { display.textContent = checked[0].value.replace(/_/g," "); }
+  else { display.textContent = checked.length + " statuses selected"; }
+}
+
 function getFilters() {
+  const statusEls = document.querySelectorAll('#f-status-dd input[type="checkbox"]:checked');
+  const statuses = Array.from(statusEls).map(e => e.value);
   return {
     owner: document.getElementById("f-owner").value,
-    status: document.getElementById("f-status").value,
+    statuses: statuses,
     urgency: document.getElementById("f-urgency").value,
     type: document.getElementById("f-type").value,
     from: document.getElementById("f-from").value,
@@ -39,12 +67,10 @@ function applyFilters(listings) {
   const f = getFilters();
   return listings.filter(l => {
     if (f.owner && l.owner_id !== f.owner) return false;
-    if (f.status && l.status !== f.status) return false;
+    if (f.statuses.length > 0 && !f.statuses.includes(l.status)) return false;
     if (f.urgency === "none") { if (l.tasks.length > 0) return false; }
     else if (f.urgency) { const a = f.urgency.split(","); if (!l.tasks.some(t => a.includes(t.urgency))) return false; }
     if (f.type && !l.tasks.some(t => t.type === f.type)) return false;
-    if (f.from && l.created_date && l.created_date < f.from) return false;
-    if (f.to && l.created_date && l.created_date > f.to) return false;
     return true;
   });
 }
@@ -127,10 +153,12 @@ function renderFeed(filtered) {
 function render() { if (!DATA) return; const f = applyFilters(DATA.listings||[]); renderKpis(f); renderTable(f); renderFeed(f); }
 function renderError(msg) { document.getElementById("tbody").innerHTML=`<tr><td colspan="6" class="empty-state" style="color:#DC2626">${msg}</td></tr>`; }
 
-["f-owner","f-status","f-urgency","f-type"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{PAGE=0;render()}));
+["f-owner","f-urgency","f-type"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{PAGE=0;render()}));
 ["f-from","f-to"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{PAGE=0;render()}));
 document.getElementById("clear-filters").addEventListener("click",()=>{
-  ["f-owner","f-status","f-urgency","f-type"].forEach(id=>{document.getElementById(id).value=""});
+  ["f-owner","f-urgency","f-type"].forEach(id=>{document.getElementById(id).value=""});
+  document.querySelectorAll('#f-status-dd input[type="checkbox"]').forEach(cb=>{cb.checked=false});
+  updateStatusDisplay();
   const today=new Date().toISOString().split("T")[0], mo=new Date(Date.now()-30*86400000).toISOString().split("T")[0];
   document.getElementById("f-from").value=mo; document.getElementById("f-to").value=today; PAGE=0; render();
 });
