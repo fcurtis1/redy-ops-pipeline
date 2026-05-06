@@ -71,6 +71,8 @@ function applyFilters(listings) {
     if (f.urgency === "none") { if (l.tasks.length > 0) return false; }
     else if (f.urgency) { const a = f.urgency.split(","); if (!l.tasks.some(t => a.includes(t.urgency))) return false; }
     if (f.type && !l.tasks.some(t => t.type === f.type)) return false;
+    if (f.from && l.created_date && l.created_date < f.from) return false;
+    if (f.to && l.created_date && l.created_date > f.to) return false;
     return true;
   });
 }
