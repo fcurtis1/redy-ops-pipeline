@@ -3,6 +3,14 @@ let DATA = null, PAGE = 0;
 const PER_PAGE = 10;
 const OWNER_COLORS = ["#43AF49","#2563EB","#D97706","#7C3AED","#DB2777","#0D9488","#6366F1","#EA580C"];
 const ICON = {phone:"\u{1F4DE}",message:"\u{1F4AC}","message-2":"\u{1F4AC}","file-text":"\u{1F4C4}",home:"\u{1F3E0}","alert-triangle":"\u26A0\uFE0F"};
+const HS_PORTAL = "8349742";
+const STATUS_LABELS = {
+  saved:"Profile Incomplete", pending_approval:"Pending Verification",
+  active:"Proposal Collection", bid_review:"Proposal Review",
+  agent_offered:"Agent Selected", listing_signed:"Listing Signed",
+  agent_fees_collected:"Agent Fees Collected", completed:"Redy Reward Paid",
+  cancelled:"Cancelled", rejected:"Rejected", aged_lead:"Aged Lead"
+};
 
 async function loadData() {
   const r = await fetch(DATA_URL, {cache:"no-cache"});
@@ -28,7 +36,7 @@ function populateFilters() {
     cb.type = "checkbox"; cb.value = s;
     cb.addEventListener("change", () => { updateStatusDisplay(); PAGE=0; render(); });
     label.appendChild(cb);
-    label.appendChild(document.createTextNode(` ${s.replace(/_/g," ")} (${statusCounts[s]||0})`));
+    label.appendChild(document.createTextNode(` ${STATUS_LABELS[s]||s.replace(/_/g," ")} (${statusCounts[s]||0})`));
     dd.appendChild(label);
   });
   display.addEventListener("click", (e) => { e.stopPropagation(); dd.style.display = dd.style.display==="none"?"block":"none"; });
@@ -46,7 +54,7 @@ function updateStatusDisplay() {
   const checked = Array.from(document.querySelectorAll('#f-status-dd input[type="checkbox"]:checked'));
   const display = document.getElementById("f-status-display");
   if (checked.length === 0) { display.textContent = "All statuses"; }
-  else if (checked.length === 1) { display.textContent = checked[0].value.replace(/_/g," "); }
+  else if (checked.length === 1) { display.textContent = STATUS_LABELS[checked[0].value]||checked[0].value.replace(/_/g," "); }
   else { display.textContent = checked.length + " statuses selected"; }
 }
 
@@ -115,11 +123,11 @@ function renderTable(filtered) {
     const oc = OWNER_COLORS[oi>=0?oi%OWNER_COLORS.length:0];
     return `<tr>
       <td><div class="addr">${l.address||"Unknown"}</div><div class="addr-sub">${l.city}, ${l.state} ${l.zip} · ${fmtPrice(l.price)}</div></td>
-      <td><span class="status-pill sp-${l.status}">${l.status.replace(/_/g," ")}</span></td>
+      <td><span class="status-pill sp-${l.status}">${STATUS_LABELS[l.status]||l.status.replace(/_/g," ")}</span></td>
       <td><div class="owner-cell"><span class="owner-av" style="background:${oc}20;color:${oc}">${l.owner_initials}</span><span style="font-weight:500">${l.owner_name.split(" ")[0]}</span></div></td>
       <td style="font-size:12px">${l.seller_name||""}</td>
       <td>${tasks}</td>
-      <td><a class="view-link" href="#">View →</a></td>
+      <td>${l.hubspot_deal_id ? `<a class="view-link" href="https://app.hubspot.com/contacts/${HS_PORTAL}/record/0-3/${l.hubspot_deal_id}" target="_blank">View →</a>` : ""}</td>
     </tr>`;
   }).join("");
 

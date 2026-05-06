@@ -85,8 +85,10 @@ main { padding: 16px 24px; }
 .sp-bid_review { background: #FFF3E0; color: #E65100; }
 .sp-pending_approval { background: #E3F2FD; color: #1565C0; }
 .sp-agent_offered { background: #EDE7F6; color: #4527A0; }
+.sp-listing_signed { background: #E8EAF6; color: #283593; }
+.sp-agent_fees_collected { background: #F3E5F5; color: #6A1B9A; }
 .sp-completed { background: #F5F5F5; color: #616161; }
-.sp-saved { background: #E0F7FA; color: #00695C; }
+.sp-saved { background: #FFF8E1; color: #F57F17; }
 .sp-cancelled { background: #FFEBEE; color: #C62828; }
 .sp-rejected { background: #FFEBEE; color: #C62828; }
 .sp-aged_lead { background: #FFF3E0; color: #E65100; }
