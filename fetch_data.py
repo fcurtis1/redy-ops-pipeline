@@ -1,265 +1,308 @@
 #!/usr/bin/env python3
-"""Regenerate data/dashboard.json from BigQuery + HubSpot.
+"""Regenerate data/dashboard.json using HubSpot (primary) + BigQuery (tasks).
+
+HubSpot provides: listings, deal owners, deal stages, create dates (real-time)
+BigQuery provides: agent proposals, chat messages, outbound tracking (task data)
 
     pip install google-cloud-bigquery requests
     gcloud auth application-default login
     export HUBSPOT_API_KEY=pat-na1-xxxxx
     python3 fetch_data.py
 """
-import json, os, sys
+import json, os, sys, time
 from datetime import datetime, timezone
 from pathlib import Path
-from google.cloud import bigquery
+
 try:
     import requests
 except ImportError:
-    requests = None
+    sys.exit("Install requests: pip install requests")
 
-PROJECT = os.environ.get("BQ_PROJECT", "redy-core-platform-prod")
-DATASET = os.environ.get("BQ_DATASET", "redy_prod_analytics")
+try:
+    from google.cloud import bigquery
+except ImportError:
+    bigquery = None
+    print("Warning: google-cloud-bigquery not installed. Tasks will be empty.", file=sys.stderr)
+
 HUBSPOT_KEY = os.environ.get("HUBSPOT_API_KEY", "")
+if not HUBSPOT_KEY:
+    sys.exit("Set HUBSPOT_API_KEY environment variable (HubSpot service key)")
+
+BQ_PROJECT = os.environ.get("BQ_PROJECT", "redy-core-platform-prod")
+BQ_DATASET = os.environ.get("BQ_DATASET", "redy_prod_analytics")
 OUT = Path(__file__).parent / "data" / "dashboard.json"
+T = f"`{BQ_PROJECT}.{BQ_DATASET}"
+
+HS_BASE = "https://api.hubapi.com"
+HS_HEADERS = {"Authorization": f"Bearer {HUBSPOT_KEY}", "Content-Type": "application/json"}
+
 SLA_URGENT_H = 24
 SLA_WARN_H = 4
-STALLED_DAYS = 7
-T = f"`{PROJECT}.{DATASET}"
 
-LISTINGS_Q = f"""
-SELECT l.listing_id, l.hubspot_deal_id, l.owner_id seller_uid, l.status,
-  l.address_street, l.address_city, l.address_state, l.address_zip, l.price,
-  l.created_at listing_ts, l.updated_at update_ts,
-  COALESCE(u.first_name,'') sfirst, COALESCE(u.last_name,'') slast
-FROM {T}.stg_listings` l
-LEFT JOIN {T}.stg_users` u ON l.owner_id=u.user_id
-WHERE l.status NOT IN ('deleted')
-  AND l.created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 DAY)
-ORDER BY l.created_at DESC
-"""
+# ─── HubSpot Functions ───────────────────────────────────────────────
 
-BIDS_Q = f"""
-SELECT b.bid_id, b.listing_id, b.agent_id, b.amount, b.bml_commission,
-  b.status, COALESCE(b.viewed,FALSE) viewed, b.created_at,
-  COALESCE(u.first_name,'') afirst, COALESCE(u.last_name,'') alast
-FROM {T}.stg_bids` b
-LEFT JOIN {T}.stg_users` u ON b.agent_id=u.user_id
-WHERE b.created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 DAY)
-  AND LOWER(b.status) NOT IN ('withdrawn','cancel','cancelled')
-"""
+def hs_get(path, params=None):
+    r = requests.get(f"{HS_BASE}{path}", headers=HS_HEADERS, params=params, timeout=30)
+    r.raise_for_status()
+    return r.json()
 
-MSGS_Q = f"""
-SELECT m.message_id, m.sender_id, m.receiver_id, m.bid_id, m.read_at,
-  m.created_at, COALESCE(u.role,'') role,
-  COALESCE(u.first_name,'') mfirst, COALESCE(u.last_name,'') mlast,
-  b.listing_id, LEFT(m.message, 80) AS preview
-FROM {T}.stg_chat_messages` m
-LEFT JOIN {T}.stg_users` u ON m.sender_id=u.user_id
-LEFT JOIN {T}.stg_bids` b ON m.bid_id=b.bid_id
-WHERE m.created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 DAY)
-"""
+def hs_post(path, body):
+    r = requests.post(f"{HS_BASE}{path}", headers=HS_HEADERS, json=body, timeout=30)
+    r.raise_for_status()
+    return r.json()
 
-FEED_Q = f"""
-SELECT * FROM (
-  SELECT 'proposal' kind, b.created_at ts,
-    CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,'')) who,
-    COALESCE(l.address_street,'') addr,
-    CONCAT(COALESCE(l.address_city,''),', ',COALESCE(l.address_state,'')) loc,
-    NOT COALESCE(b.viewed,FALSE) unread, l.listing_id
-  FROM {T}.stg_bids` b
-  LEFT JOIN {T}.stg_users` u ON u.user_id=b.agent_id
-  LEFT JOIN {T}.stg_listings` l ON l.listing_id=b.listing_id
-  WHERE b.created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)
-  ORDER BY b.created_at DESC LIMIT 50
-) UNION ALL SELECT * FROM (
-  SELECT CASE WHEN u.role='agent' THEN 'agent' ELSE 'seller' END kind,
-    m.created_at ts, CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,'')) who,
-    COALESCE(l.address_street,'') addr,
-    CONCAT(COALESCE(l.address_city,''),', ',COALESCE(l.address_state,'')) loc,
-    m.read_at IS NULL unread, l.listing_id
-  FROM {T}.stg_chat_messages` m
-  LEFT JOIN {T}.stg_users` u ON u.user_id=m.sender_id
-  LEFT JOIN {T}.stg_bids` b ON b.bid_id=m.bid_id
-  LEFT JOIN {T}.stg_listings` l ON l.listing_id=b.listing_id
-  WHERE m.created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)
-    AND u.role IN ('agent','seller')
-  ORDER BY m.created_at DESC LIMIT 50
-) ORDER BY ts DESC LIMIT 50
-"""
+def hs_get_all_owners():
+    owners = {}
+    after = None
+    while True:
+        params = {"limit": 100}
+        if after:
+            params["after"] = after
+        data = hs_get("/crm/v3/owners", params)
+        for o in data.get("results", []):
+            oid = str(o["id"])
+            fn, ln = o.get("firstName", ""), o.get("lastName", "")
+            owners[oid] = {"id": oid, "name": f"{fn} {ln}".strip(), "initials": (fn[:1] + ln[:1]).upper()}
+        paging = data.get("paging", {}).get("next", {})
+        after = paging.get("after")
+        if not after:
+            break
+    return owners
 
-def hs_owners(deal_ids):
-    if not HUBSPOT_KEY or not requests or not deal_ids:
-        return {}
-    hdr = {"Authorization": f"Bearer {HUBSPOT_KEY}", "Content-Type": "application/json"}
-    out = {}
-    ids = list({d for d in deal_ids if d})
-    for i in range(0, len(ids), 100):
-        try:
-            r = requests.post("https://api.hubapi.com/crm/v3/objects/deals/batch/read",
-                headers=hdr, timeout=30,
-                json={"properties":["hubspot_owner_id"],"inputs":[{"id":str(d)} for d in ids[i:i+100]]})
-            if r.status_code == 200:
-                for x in r.json().get("results",[]):
-                    oid = x.get("properties",{}).get("hubspot_owner_id")
-                    if oid: out[int(x["id"])] = int(oid)
-        except Exception as e:
-            print(f"  HS deal error: {e}", file=sys.stderr)
-    owner_ids = list(set(out.values()))
-    names = {}
-    for i in range(0, len(owner_ids), 100):
-        try:
-            for oid in owner_ids[i:i+100]:
-                r = requests.get(f"https://api.hubapi.com/crm/v3/owners/{oid}", headers=hdr, timeout=15)
-                if r.status_code == 200:
-                    d = r.json()
-                    fn = d.get("firstName",""); ln = d.get("lastName","")
-                    names[oid] = {"name": f"{fn} {ln}".strip(), "initials": (fn[:1]+ln[:1]).upper()}
-        except Exception as e:
-            print(f"  HS owner error: {e}", file=sys.stderr)
-    return out, names
+def hs_get_deal_stages():
+    stages = {}
+    data = hs_get("/crm/v3/pipelines/deals")
+    for pipeline in data.get("results", []):
+        for stage in pipeline.get("stages", []):
+            stages[stage["id"]] = stage.get("label", stage["id"])
+    return stages
 
-def name_short(first, last):
-    return f"{first} {last[0]}." if last else first
+def hs_search_all_deals(date_from_ms=None):
+    all_deals = []
+    after = None
+    body_base = {
+        "properties": ["dealname", "dealstage", "hubspot_owner_id", "createdate", "amount"],
+        "limit": 100,
+        "sorts": [{"propertyName": "createdate", "direction": "DESCENDING"}],
+    }
+    if date_from_ms:
+        body_base["filterGroups"] = [{"filters": [
+            {"propertyName": "createdate", "operator": "GTE", "value": str(date_from_ms)}
+        ]}]
 
-def age(h):
-    if h < 1: return "just now"
-    if h < 24: return f"{int(h)}h ago"
-    d = int(h/24)
-    return f"{d}d ago" if d < 30 else f"{int(d/30)}mo ago"
+    while True:
+        body = {**body_base}
+        if after:
+            body["after"] = after
+        data = hs_post("/crm/v3/objects/deals/search", body)
+        results = data.get("results", [])
+        all_deals.extend(results)
+        paging = data.get("paging", {}).get("next", {})
+        after = paging.get("after")
+        if not after or not results:
+            break
+        time.sleep(0.1)
+    return all_deals
 
-def overdue(h):
-    return f"{int(h)}h overdue" if h < 24 else f"{int(h/24)}d overdue"
+def parse_deal(deal, owners, stages):
+    props = deal.get("properties", {})
+    dealname = props.get("dealname", "")
+    address, city, state, zipcode = "", "", "", ""
+    if "| " in dealname:
+        parts = dealname.split("| ", 1)[1].split(", ")
+        if len(parts) >= 4:
+            address, city, state = parts[0], parts[1], parts[2]
+            zipcode = parts[3].split(" ")[0] if len(parts) > 3 else ""
+        elif len(parts) >= 2:
+            address, city = parts[0], parts[1]
 
-def gen_tasks(L, bids, msgs, now):
+    stage_id = props.get("dealstage", "")
+    stage_label = stages.get(stage_id, stage_id)
+    # Normalize stage label to status key
+    label_lower = stage_label.lower().strip()
+    stage_map = {
+        "proposal review": "bid_review", "bid review": "bid_review",
+        "active": "active", "new": "active", "new lead": "pending_approval",
+        "pending approval": "pending_approval", "agent offered": "agent_offered",
+        "completed": "completed", "cancelled": "cancelled", "canceled": "cancelled",
+        "rejected": "rejected", "saved": "saved", "aged lead": "aged_lead",
+    }
+    status = stage_map.get(label_lower, label_lower.replace(" ", "_"))
+
+    owner_id = str(props.get("hubspot_owner_id", ""))
+    owner = owners.get(owner_id, {"name": "Unassigned", "initials": "—"})
+    created = props.get("createdate", "")
+    created_date = created[:10] if created else ""
+    price = 0
+    try:
+        price = int(float(props.get("amount", 0) or 0))
+    except (ValueError, TypeError):
+        pass
+
+    return {
+        "hubspot_deal_id": str(deal["id"]),
+        "listing_id": str(deal["id"]),
+        "address": address, "city": city, "state": state, "zip": zipcode,
+        "price": price, "status": status, "created_date": created_date,
+        "owner_id": owner_id, "owner_name": owner.get("name", "Unassigned"),
+        "owner_initials": owner.get("initials", "—"),
+        "seller_name": "", "tasks": [], "last_activity_label": "",
+    }
+
+# ─── BigQuery Functions ───────────────────────────────────────────────
+
+def get_bq_task_data():
+    if not bigquery:
+        return {}, {}, set(), {}
+    bq = bigquery.Client(project=BQ_PROJECT)
+
+    print("  BigQuery: bids...")
+    bids = {}
+    for r in bq.query(f"""
+        SELECT l.hubspot_deal_id,
+          COUNTIF(NOT COALESCE(b.viewed,FALSE) AND b.status='placed') AS unviewed,
+          STRING_AGG(DISTINCT CONCAT(u.first_name,' ',LEFT(u.last_name,1),'.') 
+            ORDER BY CONCAT(u.first_name,' ',LEFT(u.last_name,1),'.') LIMIT 4) AS agent_names
+        FROM {T}.stg_bids` b
+        LEFT JOIN {T}.stg_users` u ON b.agent_id=u.user_id
+        LEFT JOIN {T}.stg_listings` l ON b.listing_id=l.listing_id
+        WHERE LOWER(b.status) NOT IN ('withdrawn','cancel','cancelled')
+          AND l.hubspot_deal_id IS NOT NULL
+        GROUP BY l.hubspot_deal_id
+    """).result():
+        if r.hubspot_deal_id:
+            bids[str(r.hubspot_deal_id)] = {"unviewed": r.unviewed or 0, "agent_names": r.agent_names or ""}
+
+    print("  BigQuery: messages...")
+    msgs = {}
+    for r in bq.query(f"""
+        SELECT l.hubspot_deal_id,
+          COUNTIF(u.role='seller' AND m.read_at IS NULL) AS unread_seller,
+          COUNTIF(u.role='agent' AND m.read_at IS NULL) AS unread_agent
+        FROM {T}.stg_chat_messages` m
+        LEFT JOIN {T}.stg_users` u ON m.sender_id=u.user_id
+        LEFT JOIN {T}.stg_bids` b ON m.bid_id=b.bid_id
+        LEFT JOIN {T}.stg_listings` l ON b.listing_id=l.listing_id
+        WHERE m.read_at IS NULL AND l.hubspot_deal_id IS NOT NULL
+        GROUP BY l.hubspot_deal_id
+    """).result():
+        if r.hubspot_deal_id:
+            msgs[str(r.hubspot_deal_id)] = {"unread_seller": r.unread_seller or 0, "unread_agent": r.unread_agent or 0}
+
+    print("  BigQuery: outbound...")
+    outbound = set()
+    for r in bq.query(f"""
+        SELECT DISTINCT CAST(l.hubspot_deal_id AS STRING) AS did
+        FROM {T}.stg_chat_messages` m
+        JOIN {T}.stg_bids` b ON m.bid_id=b.bid_id
+        JOIN {T}.stg_listings` l ON b.listing_id=l.listing_id
+        WHERE m.receiver_id=l.owner_id AND l.hubspot_deal_id IS NOT NULL
+    """).result():
+        outbound.add(r.did)
+
+    print("  BigQuery: sellers...")
+    sellers = {}
+    for r in bq.query(f"""
+        SELECT CAST(l.hubspot_deal_id AS STRING) AS did,
+          CONCAT(COALESCE(u.first_name,''),' ',LEFT(COALESCE(u.last_name,''),1),'.') AS seller_name
+        FROM {T}.stg_listings` l
+        LEFT JOIN {T}.stg_users` u ON l.owner_id=u.user_id
+        WHERE l.hubspot_deal_id IS NOT NULL
+    """).result():
+        if r.did and r.seller_name:
+            sellers[r.did] = r.seller_name.strip()
+
+    return bids, msgs, outbound, sellers
+
+def build_tasks(record, bids, msgs, outbound):
+    did = record["hubspot_deal_id"]
+    seller = record["seller_name"] or "Seller"
     tasks = []
-    lid, sid = L["listing_id"], L["seller_uid"]
-    seller_name = name_short(L["sfirst"], L["slast"]) if L.get("slast") else L.get("sfirst","Seller")
-    lb = [b for b in bids if b["listing_id"]==lid]
-    lm = [m for m in msgs if m.get("listing_id")==lid]
-    placed = [b for b in lb if b["status"]=="placed"]
-    us = [m for m in lm if m["role"]=="seller" and m["read_at"] is None]
-    ua = [m for m in lm if m["role"]=="agent" and m["read_at"] is None]
-    outbound = [m for m in lm if m.get("receiver_id")==sid]
+    b = bids.get(did, {})
+    m = msgs.get(did, {})
+    uv, us, ua = b.get("unviewed", 0), m.get("unread_seller", 0), m.get("unread_agent", 0)
+    has_ob = did in outbound
 
-    # Urgent: unread seller messages
-    for m in us:
-        h = (now - m["created_at"]).total_seconds()/3600
-        preview = (m.get("preview","") or "")[:60]
-        u = "urgent" if h>SLA_URGENT_H else "warning" if h>SLA_WARN_H else "info"
-        label = overdue(h-SLA_URGENT_H) if u=="urgent" else age(h)
-        sender = name_short(m["mfirst"], m["mlast"])
-        text = f'Call {sender} back — seller messaged "{preview}" {age(h)}, still unread' if preview else f"Reply to {sender} (seller) — unread message sent {age(h)}"
-        tasks.append({"type":"reply_seller","urgency":u,"icon":"phone","text":text,"age_hours":round(h,1),"age_label":label})
+    if us > 0:
+        tasks.append({"type": "reply_seller", "urgency": "urgent", "icon": "📞",
+            "text": f"Reply to {seller} (seller) — {us} unread message{'s'*(us!=1)}", "age_label": "urgent", "age_hours": 25})
+    if ua > 0:
+        tasks.append({"type": "reply_agent", "urgency": "urgent", "icon": "💬",
+            "text": f"Reply to {ua} unread agent message{'s'*(ua!=1)}", "age_label": "urgent", "age_hours": 25})
+    if uv > 0 and not has_ob:
+        tasks.append({"type": "call_seller", "urgency": "warning", "icon": "📞",
+            "text": f"Call {seller} (seller) — {uv} proposal{'s'*(uv!=1)} received, no outbound contact yet", "age_label": "warning", "age_hours": 12})
+    if uv > 0:
+        agents = b.get("agent_names", "")
+        tasks.append({"type": "new_proposals", "urgency": "info", "icon": "📄",
+            "text": f"{uv} new proposal{'s'*(uv!=1)} from agents — notify seller {seller}" + (f" ({agents})" if agents else ""), "age_label": "today", "age_hours": 0})
 
-    # Urgent/warning: unread agent messages (one per agent)
-    seen_agents = set()
-    for m in sorted(ua, key=lambda x: x["created_at"]):
-        agent_name = f"{m['mfirst']} {m['mlast']}".strip()
-        if agent_name in seen_agents: continue
-        seen_agents.add(agent_name)
-        h = (now - m["created_at"]).total_seconds()/3600
-        u = "urgent" if h>SLA_URGENT_H else "warning" if h>SLA_WARN_H else "info"
-        label = overdue(h-SLA_URGENT_H) if u=="urgent" else age(h)
-        tasks.append({"type":"reply_agent","urgency":u,"icon":"message-2",
-            "text":f"Reply to {agent_name} (agent) — unread message sent {age(h)}",
-            "age_hours":round(h,1),"age_label":label})
-
-    # Warning: proposals waiting, no seller contact
-    if placed and not outbound:
-        h = (now - min(b["created_at"] for b in placed)).total_seconds()/3600
-        n = len(placed)
-        u = "urgent" if h>SLA_URGENT_H else "warning" if h>SLA_WARN_H else "info"
-        label = overdue(h-SLA_URGENT_H) if u=="urgent" else age(h)
-        tasks.append({"type":"call_seller","urgency":u,"icon":"phone",
-            "text":f"Call {seller_name} (seller) — {n} proposal{'s'*(n!=1)} received but no outbound contact yet",
-            "age_hours":round(h,1),"age_label":label})
-
-    # Info: new proposals to notify seller about
-    if placed:
-        h = (now - max(b["created_at"] for b in placed)).total_seconds()/3600
-        names = ", ".join(name_short(b["afirst"],b["alast"]) for b in placed[:4])
-        n = len(placed)
-        tasks.append({"type":"new_proposals","urgency":"info","icon":"file-text",
-            "text":f"{n} new proposal{'s'*(n!=1)} from agents — notify seller {seller_name}" + (f" ({names})" if names else ""),
-            "age_hours":round(h,1),"age_label":"today" if h<24 else age(h)})
-
-    # Warning: stalled listing
-    sh = (now - L["update_ts"]).total_seconds()/3600
-    if sh > STALLED_DAYS*24 and L["status"] not in ("completed","deleted","cancelled","rejected"):
-        tasks.append({"type":"stalled","urgency":"warning","icon":"alert-triangle",
-            "text":f"Listing stalled — no activity in {int(sh/24)} days",
-            "age_hours":round(sh,1),"age_label":f"{int(sh/24)}d"})
-
-    order = {"urgent":0,"warning":1,"info":2}
-    tasks.sort(key=lambda t:(order.get(t["urgency"],9),-t["age_hours"]))
+    tasks.sort(key=lambda t: ({"urgent": 0, "warning": 1, "info": 2}.get(t["urgency"], 9), -t.get("age_hours", 0)))
     return tasks
+
+# ─── Main ─────────────────────────────────────────────────────────────
 
 def main():
     now = datetime.now(timezone.utc)
-    bq = bigquery.Client(project=PROJECT)
-    print("Fetching listings..."); listings = [dict(r) for r in bq.query(LISTINGS_Q).result()]
-    print(f"  {len(listings)} listings")
-    print("Fetching bids..."); bids = [dict(r) for r in bq.query(BIDS_Q).result()]
-    print(f"  {len(bids)} bids")
-    print("Fetching messages..."); msgs = [dict(r) for r in bq.query(MSGS_Q).result()]
-    print(f"  {len(msgs)} messages")
-    print("Fetching feed..."); feed_rows = [dict(r) for r in bq.query(FEED_Q).result()]
 
-    dids = [l["hubspot_deal_id"] for l in listings if l.get("hubspot_deal_id")]
-    print(f"Fetching HubSpot owners ({len(dids)} deals)...")
-    deal_map, owner_names = hs_owners(dids)
-    print(f"  Mapped {len(deal_map)} deals to {len(owner_names)} owners")
+    print("1. Fetching HubSpot owners...")
+    owners = hs_get_all_owners()
+    print(f"   {len(owners)} owners")
 
-    records = []
-    for l in listings:
-        oid = deal_map.get(l.get("hubspot_deal_id"))
-        oinfo = owner_names.get(oid, {"name":"Unassigned","initials":"—"})
-        tasks = gen_tasks(l, bids, msgs, now)
-        sname = name_short(l["sfirst"],l["slast"]) if l.get("slast") else l.get("sfirst","")
-        lmsgs = [m for m in msgs if m.get("listing_id")==l["listing_id"]]
-        acts = ([b["created_at"] for b in bids if b["listing_id"]==l["listing_id"]] +
-                [m["created_at"] for m in lmsgs] + [l["listing_ts"]])
-        lah = (now - max(acts)).total_seconds()/3600
+    print("2. Fetching deal stages...")
+    stages = hs_get_deal_stages()
+    for sid, label in stages.items():
+        print(f"   {sid}: {label}")
 
-        records.append({
-            "listing_id":l["listing_id"], "address":l.get("address_street",""),
-            "city":l.get("address_city",""), "state":l.get("address_state",""),
-            "zip":l.get("address_zip",""), "price":l.get("price") or 0,
-            "status":l.get("status",""),
-            "created_date": l["listing_ts"].strftime("%Y-%m-%d") if l.get("listing_ts") else "",
-            "owner_id":str(oid) if oid else "",
-            "owner_name":oinfo["name"], "owner_initials":oinfo["initials"],
-            "seller_name":sname.strip(),
-            "tasks":tasks,
-            "last_activity_hours":round(lah,1), "last_activity_label":age(lah),
-        })
+    print("3. Fetching deals from HubSpot (last 90 days)...")
+    cutoff_ms = int((now.timestamp() - 90 * 86400) * 1000)
+    deals = hs_search_all_deals(date_from_ms=cutoff_ms)
+    print(f"   {len(deals)} deals")
 
-    urank = {"urgent":0,"warning":1,"info":2}
-    records.sort(key=lambda r:(min((urank.get(t["urgency"],9) for t in r["tasks"]),default=3),
-        -max((t["age_hours"] for t in r["tasks"]),default=0)))
+    print("4. Parsing deals...")
+    records = [parse_deal(d, owners, stages) for d in deals]
+    print(f"   {len(records)} listings")
 
-    owners = {}
+    print("5. Enriching with BigQuery task data...")
+    bids, msgs, outbound, sellers = get_bq_task_data()
+    print(f"   {len(bids)} with bids, {len(msgs)} with messages, {len(sellers)} seller names")
+
     for r in records:
-        if r["owner_id"] and r["owner_id"] not in owners:
-            owners[r["owner_id"]] = {"id":r["owner_id"],"name":r["owner_name"],"initials":r["owner_initials"]}
-    owners_list = sorted(owners.values(), key=lambda o:o["name"])
+        did = r["hubspot_deal_id"]
+        if did in sellers:
+            r["seller_name"] = sellers[did]
+        r["tasks"] = build_tasks(r, bids, msgs, outbound)
+
+    records.sort(key=lambda r: (
+        min(({"urgent": 0, "warning": 1, "info": 2}.get(t["urgency"], 9) for t in r["tasks"]), default=3),
+        -max((t.get("age_hours", 0) for t in r["tasks"]), default=0)))
+
+    own = {}
+    for r in records:
+        if r["owner_id"] and r["owner_id"] not in own:
+            own[r["owner_id"]] = {"id": r["owner_id"], "name": r["owner_name"], "initials": r["owner_initials"]}
 
     all_t = [t for r in records for t in r["tasks"]]
-    feed = [{"kind":r["kind"],"who":(r.get("who") or "").strip(),"addr":r.get("addr",""),
-        "loc":r.get("loc",""),"when":r["ts"].timestamp(),"unread":bool(r.get("unread")),
-        "listing_id":r.get("listing_id","")} for r in feed_rows]
-
     payload = {
-        "generated_at":now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "source":f"{PROJECT}.{DATASET}",
-        "owners":owners_list,
-        "statuses":sorted({r["status"] for r in records if r["status"]}),
-        "kpis":{"total_listings":len(records),"total_tasks":len(all_t),
-            "urgent_count":sum(1 for t in all_t if t["urgency"]=="urgent"),
-            "warning_count":sum(1 for t in all_t if t["urgency"]=="warning")},
-        "listings":records, "feed":feed,
+        "generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "source": "HubSpot (primary) + BigQuery (tasks)",
+        "owners": sorted(own.values(), key=lambda o: o["name"]),
+        "statuses": sorted({r["status"] for r in records if r["status"]}),
+        "kpis": {"total_listings": len(records), "total_tasks": len(all_t),
+                 "urgent_count": sum(1 for t in all_t if t["urgency"] == "urgent"),
+                 "warning_count": sum(1 for t in all_t if t["urgency"] == "warning")},
+        "listings": records, "feed": [],
     }
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    with open(OUT,"w") as f: json.dump(payload, f, indent=2, default=str)
-    print(f"\nWrote {OUT} ({len(records)} listings, {len(all_t)} tasks, {len(feed)} feed)")
+    with open(OUT, "w") as f:
+        json.dump(payload, f, indent=2, default=str)
+
+    print(f"\nDone! {OUT}")
+    print(f"  {len(records)} listings, {len(all_t)} tasks, {len(own)} owners")
+    from collections import Counter
+    for name, cnt in Counter(r["owner_name"] for r in records).most_common():
+        print(f"  {name}: {cnt}")
 
 if __name__ == "__main__":
     main()
