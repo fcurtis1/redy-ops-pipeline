@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Redy Dashboard — Proposals & Chats</title>
+<title>Redy Ops Dashboard</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -11,71 +11,72 @@
   <div class="brand">
     <span class="logo">R</span>
     <div>
-      <div class="brand-title">Redy Dashboard</div>
-      <div class="brand-sub">Agent proposals &amp; chat activity</div>
+      <div class="brand-title">Redy ops dashboard</div>
+      <div class="brand-sub">Listing tasks &amp; follow-ups · Live data</div>
     </div>
   </div>
-  <div class="filters">
-    <label>Range
-      <select id="range">
-        <option value="1">Today</option>
-        <option value="7" selected>Last 7 days</option>
-        <option value="30">Last 30 days</option>
-      </select>
-    </label>
-    <button id="refresh" type="button">Refresh</button>
+  <div class="header-right">
+    <span class="sync-time" id="sync-time"></span>
+    <button id="refresh" class="refresh-btn" type="button">↻ Refresh</button>
   </div>
 </header>
 
-<main class="grid">
-  <section class="card kpi" data-tone="violet">
-    <div class="kpi-label">Agent proposals received</div>
-    <div class="kpi-value" id="kpi-proposals">—</div>
-    <div class="kpi-delta" id="kpi-proposals-delta"></div>
-  </section>
+<div class="filter-bar">
+  <div class="fg"><div class="fl">Deal owner</div><select id="f-owner"><option value="">All team</option></select></div>
+  <div class="fg"><div class="fl">Listing status</div><select id="f-status"><option value="">All statuses</option></select></div>
+  <div class="fg"><div class="fl">Task urgency</div>
+    <select id="f-urgency">
+      <option value="">All tasks</option>
+      <option value="urgent">Urgent only</option>
+      <option value="urgent,warning">Warning + urgent</option>
+      <option value="none">No open tasks</option>
+    </select>
+  </div>
+  <div class="fg"><div class="fl">Task type</div>
+    <select id="f-type">
+      <option value="">All types</option>
+      <option value="reply_seller">Reply to seller</option>
+      <option value="reply_agent">Reply to agent</option>
+      <option value="call_seller">Call seller</option>
+      <option value="new_proposals">New proposals</option>
+      <option value="stalled">Stalled listings</option>
+    </select>
+  </div>
+  <div class="fg"><div class="fl">Date from</div><input type="date" id="f-from" /></div>
+  <div class="fg"><div class="fl">Date to</div><input type="date" id="f-to" /></div>
+  <button id="clear-filters" class="clear-btn" type="button">Clear filters</button>
+</div>
 
-  <section class="card kpi" data-tone="teal">
-    <div class="kpi-label">Seller chat messages</div>
-    <div class="kpi-value" id="kpi-seller">—</div>
-    <div class="kpi-delta" id="kpi-seller-delta"></div>
-  </section>
+<div class="legend-bar">
+  <span class="lb">Task priority:</span>
+  <span class="li"><span class="ld ld-r"></span>Urgent — past 24h SLA</span>
+  <span class="li"><span class="ld ld-a"></span>Warning — needs attention</span>
+  <span class="li"><span class="ld ld-g"></span>Action needed</span>
+</div>
 
-  <section class="card kpi" data-tone="amber">
-    <div class="kpi-label">Agent chat messages</div>
-    <div class="kpi-value" id="kpi-agent">—</div>
-    <div class="kpi-delta" id="kpi-agent-delta"></div>
-  </section>
+<main>
+  <div class="kpi-row">
+    <div class="kpi" data-tone="green"><div class="kpi-label">Listings</div><div class="kpi-value" id="k-listings">—</div><div class="kpi-sub" id="k-listings-sub"></div></div>
+    <div class="kpi" data-tone="amber"><div class="kpi-label">Open tasks</div><div class="kpi-value" id="k-tasks">—</div><div class="kpi-sub" id="k-tasks-sub"></div></div>
+    <div class="kpi" data-tone="red"><div class="kpi-label">Urgent</div><div class="kpi-value" id="k-urgent">—</div><div class="kpi-sub">past 24h SLA</div></div>
+    <div class="kpi" data-tone="orange"><div class="kpi-label">Warnings</div><div class="kpi-value" id="k-warn">—</div><div class="kpi-sub">needs attention</div></div>
+    <div class="kpi" data-tone="green"><div class="kpi-label">Today's proposals</div><div class="kpi-value" id="k-proposals">—</div><div class="kpi-sub" id="k-proposals-sub"></div></div>
+  </div>
 
-  <section class="card kpi" data-tone="rose">
-    <div class="kpi-label">Unread notifications</div>
-    <div class="kpi-value" id="kpi-unread">—</div>
-    <div class="kpi-delta">across proposals &amp; chats</div>
-  </section>
+  <div class="table-wrap">
+    <table class="ttable">
+      <thead><tr>
+        <th>Property</th><th>Status</th><th>Deal owner</th><th>Seller</th><th class="th-tasks">Tasks to do</th><th></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
 
-  <section class="card chart-card">
-    <div class="card-header">
-      <h2>Daily activity</h2>
-      <div class="legend">
-        <span class="dot violet"></span>Proposals
-        <span class="dot teal"></span>Seller msgs
-        <span class="dot amber"></span>Agent msgs
-      </div>
-    </div>
-    <svg id="chart" viewBox="0 0 760 260" preserveAspectRatio="none"></svg>
-  </section>
-
-  <section class="card feed-card">
-    <div class="card-header">
-      <h2>Recent notifications</h2>
-      <div class="tabs">
-        <button class="tab active" data-tab="all">All</button>
-        <button class="tab" data-tab="proposal">Proposals</button>
-        <button class="tab" data-tab="seller">Seller</button>
-        <button class="tab" data-tab="agent">Agent</button>
-      </div>
-    </div>
+  <div class="panel" style="margin-top:20px">
+    <div class="panel-title">🔔 Live activity feed</div>
     <ul id="feed" class="feed"></ul>
-  </section>
+  </div>
 </main>
 
 <script src="app.js"></script>
