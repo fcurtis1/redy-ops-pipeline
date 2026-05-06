@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Redy Dashboard — Proposals & Chats</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">R</span>
+    <div>
+      <div class="brand-title">Redy Dashboard</div>
+      <div class="brand-sub">Agent proposals &amp; chat activity</div>
+    </div>
+  </div>
+  <div class="filters">
+    <label>Range
+      <select id="range">
+        <option value="1">Today</option>
+        <option value="7" selected>Last 7 days</option>
+        <option value="30">Last 30 days</option>
+      </select>
+    </label>
+    <button id="refresh" type="button">Refresh</button>
+  </div>
+</header>
+
+<main class="grid">
+  <section class="card kpi" data-tone="violet">
+    <div class="kpi-label">Agent proposals received</div>
+    <div class="kpi-value" id="kpi-proposals">—</div>
+    <div class="kpi-delta" id="kpi-proposals-delta"></div>
+  </section>
+
+  <section class="card kpi" data-tone="teal">
+    <div class="kpi-label">Seller chat messages</div>
+    <div class="kpi-value" id="kpi-seller">—</div>
+    <div class="kpi-delta" id="kpi-seller-delta"></div>
+  </section>
+
+  <section class="card kpi" data-tone="amber">
+    <div class="kpi-label">Agent chat messages</div>
+    <div class="kpi-value" id="kpi-agent">—</div>
+    <div class="kpi-delta" id="kpi-agent-delta"></div>
+  </section>
+
+  <section class="card kpi" data-tone="rose">
+    <div class="kpi-label">Unread notifications</div>
+    <div class="kpi-value" id="kpi-unread">—</div>
+    <div class="kpi-delta">across proposals &amp; chats</div>
+  </section>
+
+  <section class="card chart-card">
+    <div class="card-header">
+      <h2>Daily activity</h2>
+      <div class="legend">
+        <span class="dot violet"></span>Proposals
+        <span class="dot teal"></span>Seller msgs
+        <span class="dot amber"></span>Agent msgs
+      </div>
+    </div>
+    <svg id="chart" viewBox="0 0 760 260" preserveAspectRatio="none"></svg>
+  </section>
+
+  <section class="card feed-card">
+    <div class="card-header">
+      <h2>Recent notifications</h2>
+      <div class="tabs">
+        <button class="tab active" data-tab="all">All</button>
+        <button class="tab" data-tab="proposal">Proposals</button>
+        <button class="tab" data-tab="seller">Seller</button>
+        <button class="tab" data-tab="agent">Agent</button>
+      </div>
+    </div>
+    <ul id="feed" class="feed"></ul>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
