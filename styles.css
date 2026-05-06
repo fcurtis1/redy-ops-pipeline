@@ -1,0 +1,109 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-2: #1d2129;
+  --text: #e7eaf0;
+  --muted: #8b93a3;
+  --border: #262b35;
+  --violet: #8b5cf6;
+  --teal: #14b8a6;
+  --amber: #f59e0b;
+  --rose: #f43f5e;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif; }
+
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 24px; border-bottom: 1px solid var(--border); background: var(--panel);
+}
+.brand { display: flex; gap: 12px; align-items: center; }
+.logo {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--violet), var(--rose));
+  display: grid; place-items: center; font-weight: 700;
+}
+.brand-title { font-weight: 600; }
+.brand-sub { color: var(--muted); font-size: 12px; }
+
+.filters { display: flex; gap: 10px; align-items: center; }
+.filters label { color: var(--muted); font-size: 12px; display: flex; gap: 6px; align-items: center; }
+.filters select, .filters button {
+  background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+  padding: 7px 10px; border-radius: 8px; font-size: 13px; cursor: pointer;
+}
+.filters button:hover { border-color: #3a414f; }
+
+.grid {
+  display: grid; gap: 16px; padding: 20px 24px;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: min-content;
+}
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.card-header h2 { margin: 0; font-size: 14px; font-weight: 600; }
+
+.kpi { position: relative; overflow: hidden; }
+.kpi::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--violet);
+}
+.kpi[data-tone="teal"]::before  { background: var(--teal); }
+.kpi[data-tone="amber"]::before { background: var(--amber); }
+.kpi[data-tone="rose"]::before  { background: var(--rose); }
+.kpi-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi-value { font-size: 32px; font-weight: 700; margin-top: 6px; }
+.kpi-delta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.kpi-delta.up   { color: #34d399; }
+.kpi-delta.down { color: #f87171; }
+
+.chart-card { grid-column: span 3; }
+.feed-card  { grid-column: span 1; min-height: 320px; }
+
+#chart { width: 100%; height: 260px; }
+.legend { display: flex; gap: 12px; color: var(--muted); font-size: 12px; align-items: center; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.dot.violet { background: var(--violet); }
+.dot.teal   { background: var(--teal); }
+.dot.amber  { background: var(--amber); }
+
+.tabs { display: flex; gap: 4px; }
+.tab {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  padding: 4px 9px; border-radius: 7px; font-size: 12px; cursor: pointer;
+}
+.tab.active { background: var(--panel-2); color: var(--text); border-color: #3a414f; }
+
+.feed { list-style: none; padding: 0; margin: 0; max-height: 360px; overflow-y: auto; }
+.feed li {
+  display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: start;
+  padding: 10px 4px; border-bottom: 1px solid var(--border);
+}
+.feed li:last-child { border-bottom: 0; }
+.feed .badge {
+  width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+  font-size: 12px; font-weight: 700; color: #0f1115;
+}
+.badge.proposal { background: var(--violet); color: white; }
+.badge.seller   { background: var(--teal); color: white; }
+.badge.agent    { background: var(--amber); }
+.feed .who { font-weight: 600; font-size: 13px; }
+.feed .what { color: var(--muted); font-size: 12px; }
+.feed .when { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.feed .unread { width: 8px; height: 8px; border-radius: 50%; background: var(--rose); display: inline-block; margin-left: 6px; }
+
+@media (max-width: 1024px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+  .chart-card, .feed-card { grid-column: span 2; }
+}
+@media (max-width: 560px) {
+  .grid { grid-template-columns: 1fr; }
+  .chart-card, .feed-card { grid-column: span 1; }
+}
