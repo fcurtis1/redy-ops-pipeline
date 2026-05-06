@@ -1,75 +1,55 @@
 // Redy Dashboard — proposals + chat notification metrics.
-// Data is generated client-side as a stand-in for a real API.
-// Replace `loadData()` with a fetch() call when wiring to the backend.
+// Data is sourced from BigQuery (`redy_prod_analytics`) via fetch_data.py
+// which writes data/dashboard.json. Rendering slices that file by date range.
 
-const NAMES = [
-  "Avery Chen", "Marcus Lee", "Priya Patel", "Sofia Romero", "Daniel Kim",
-  "Jordan Blake", "Hana Suzuki", "Liam O'Brien", "Naomi Reyes", "Oscar Webb",
-];
-const ADDRESSES = [
-  "412 Maple Ave", "88 Harbor Pl", "1701 Elm St", "23 Cedar Ct",
-  "905 Birch Way", "57 Lakeview Dr", "1290 Sunset Blvd", "318 Oak Ln",
-];
+const DATA_URL = "data/dashboard.json";
 
-function rand(seed) {
-  // mulberry32 — deterministic per range so refresh is stable
-  let t = seed >>> 0;
-  return () => {
-    t += 0x6D2B79F5;
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+let DATA = null;        // { series: [...], feed: [...] }
+let currentFeed = [];
+let currentTab = "all";
+
+async function fetchData() {
+  const res = await fetch(DATA_URL, { cache: "no-cache" });
+  if (!res.ok) throw new Error(`Failed to load ${DATA_URL}: ${res.status}`);
+  const raw = await res.json();
+  // Parse dates once.
+  return {
+    ...raw,
+    series: raw.series.map(p => ({ ...p, date: new Date(p.date + "T00:00:00") })),
+    feed: raw.feed.map(i => ({ ...i, when: new Date(i.when * 1000) })),
   };
 }
 
-function loadData(days) {
-  const r = rand(days * 1009 + 7);
-  const series = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    series.push({
-      date: d,
-      proposals: Math.floor(r() * 14) + (days === 1 ? 1 : 3),
-      seller:    Math.floor(r() * 22) + 4,
-      agent:     Math.floor(r() * 18) + 3,
-    });
-  }
-
-  const feed = [];
-  const total = days === 1 ? 8 : 18;
-  for (let i = 0; i < total; i++) {
-    const kinds = ["proposal", "seller", "agent"];
-    const kind = kinds[Math.floor(r() * kinds.length)];
-    const minsAgo = Math.floor(r() * (days * 24 * 60));
-    const when = new Date(Date.now() - minsAgo * 60 * 1000);
-    feed.push({
-      kind,
-      who: NAMES[Math.floor(r() * NAMES.length)],
-      addr: ADDRESSES[Math.floor(r() * ADDRESSES.length)],
-      when,
-      unread: r() < 0.45,
-    });
-  }
-  feed.sort((a, b) => b.when - a.when);
-  return { series, feed };
+function sliceByDays(series, days) {
+  // series is sorted ascending; return the trailing `days` entries.
+  return series.slice(Math.max(0, series.length - days));
 }
 
-function sum(series, key) { return series.reduce((s, p) => s + p[key], 0); }
+function priorPeriod(series, days) {
+  const end = Math.max(0, series.length - days);
+  return series.slice(Math.max(0, end - days), end);
+}
+
+function feedWithinDays(feed, days) {
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return feed.filter(i => i.when.getTime() >= cutoff);
+}
+
+function sum(series, key) { return series.reduce((s, p) => s + (p[key] || 0), 0); }
 
 function fmtDelta(curr, prev) {
-  if (prev === 0) return { text: "—", cls: "" };
+  if (prev === 0) return { text: curr > 0 ? "new activity" : "—", cls: curr > 0 ? "up" : "" };
   const pct = Math.round(((curr - prev) / prev) * 100);
   const cls = pct > 0 ? "up" : pct < 0 ? "down" : "";
   const sign = pct > 0 ? "+" : "";
   return { text: `${sign}${pct}% vs prior period`, cls };
 }
 
-function renderKpis(series, days) {
-  const prev = loadData(days * 2).series.slice(0, days);
+function renderKpis(series, prev) {
   const proposals = sum(series, "proposals");
   const seller    = sum(series, "seller");
   const agent     = sum(series, "agent");
+  const unread    = sum(series, "unread_bids") + sum(series, "unread_msgs");
 
   const set = (id, val, delta) => {
     document.getElementById(id).textContent = val.toLocaleString();
@@ -83,8 +63,7 @@ function renderKpis(series, days) {
   set("kpi-proposals", proposals, fmtDelta(proposals, sum(prev, "proposals")));
   set("kpi-seller",    seller,    fmtDelta(seller,    sum(prev, "seller")));
   set("kpi-agent",     agent,     fmtDelta(agent,     sum(prev, "agent")));
-  document.getElementById("kpi-unread").textContent =
-    Math.round((proposals + seller + agent) * 0.18).toLocaleString();
+  document.getElementById("kpi-unread").textContent = unread.toLocaleString();
 }
 
 function renderChart(series) {
@@ -104,7 +83,6 @@ function renderChart(series) {
     `<circle cx="${x(i).toFixed(1)}" cy="${y(p[key]).toFixed(1)}" r="2.5" fill="${color}" />`
   ).join("");
 
-  // gridlines + y labels
   const gridSteps = 4;
   let grid = "";
   for (let i = 0; i <= gridSteps; i++) {
@@ -114,8 +92,7 @@ function renderChart(series) {
     grid += `<text x="${PAD_L - 6}" y="${gy + 3}" fill="#8b93a3" font-size="10" text-anchor="end">${v}</text>`;
   }
 
-  // x labels (skip some on long ranges)
-  const stepX = Math.ceil(series.length / 7);
+  const stepX = Math.max(1, Math.ceil(series.length / 7));
   let xlabels = "";
   series.forEach((p, i) => {
     if (i % stepX !== 0 && i !== series.length - 1) return;
@@ -131,14 +108,11 @@ function renderChart(series) {
 
 function timeAgo(d) {
   const s = Math.floor((Date.now() - d.getTime()) / 1000);
-  if (s < 60) return s + "s ago";
+  if (s < 60) return Math.max(0, s) + "s ago";
   if (s < 3600) return Math.floor(s / 60) + "m ago";
   if (s < 86400) return Math.floor(s / 3600) + "h ago";
   return Math.floor(s / 86400) + "d ago";
 }
-
-let currentFeed = [];
-let currentTab = "all";
 
 function renderFeed() {
   const ul = document.getElementById("feed");
@@ -154,10 +128,11 @@ function renderFeed() {
       : i.kind === "seller"
         ? `(seller) sent a chat about <b>${i.addr}</b>`
         : `(agent) replied in chat about <b>${i.addr}</b>`;
+    const who = i.who || "—";
     return `<li>
       <span class="badge ${i.kind}">${label}</span>
       <div>
-        <div class="who">${i.who}${i.unread ? '<span class="unread" title="unread"></span>' : ''}</div>
+        <div class="who">${who}${i.unread ? '<span class="unread" title="unread"></span>' : ''}</div>
         <div class="what">${text}</div>
       </div>
       <span class="when">${timeAgo(i.when)}</span>
@@ -165,17 +140,31 @@ function renderFeed() {
   }).join("");
 }
 
+function renderError(msg) {
+  document.getElementById("feed").innerHTML =
+    `<li style="color:#ef4444;justify-content:center">${msg}</li>`;
+  ["kpi-proposals","kpi-seller","kpi-agent","kpi-unread"].forEach(id => {
+    document.getElementById(id).textContent = "—";
+  });
+  document.getElementById("chart").innerHTML = "";
+}
+
 function refresh() {
+  if (!DATA) return;
   const days = parseInt(document.getElementById("range").value, 10);
-  const { series, feed } = loadData(days);
-  currentFeed = feed;
-  renderKpis(series, days);
+  const series = sliceByDays(DATA.series, days);
+  const prev   = priorPeriod(DATA.series, days);
+  currentFeed = feedWithinDays(DATA.feed, days);
+  renderKpis(series, prev);
   renderChart(series);
   renderFeed();
 }
 
 document.getElementById("range").addEventListener("change", refresh);
-document.getElementById("refresh").addEventListener("click", refresh);
+document.getElementById("refresh").addEventListener("click", async () => {
+  try { DATA = await fetchData(); refresh(); }
+  catch (e) { renderError(e.message); }
+});
 document.querySelectorAll(".tab").forEach(t => {
   t.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
@@ -185,4 +174,12 @@ document.querySelectorAll(".tab").forEach(t => {
   });
 });
 
-refresh();
+(async () => {
+  try {
+    DATA = await fetchData();
+    refresh();
+  } catch (e) {
+    renderError(`Could not load dashboard data (${e.message}). ` +
+      `Run \`python3 fetch_data.py\` to regenerate data/dashboard.json.`);
+  }
+})();
